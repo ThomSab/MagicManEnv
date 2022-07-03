@@ -64,7 +64,7 @@ class Game:
     def starting_player(self,starting_player):
         self.players.rotate(  -self.players.index(starting_player) )
     
-    def turn(self): #!!not round
+    def turn_step(self,action): #!!not round
         turn_cards = []
 
         #____________________________________________________
@@ -93,11 +93,10 @@ class Game:
             n_cards[len(player.cards)-1] = 1#how many cards there are in his hand
             
             played_cards = torch.zeros(60)
-            owned_cards = torch.zeros(60)
             for card in turn_cards:
                 played_cards[deck.deck.index(card)] = 1
-            for card in player.cards:
-                owned_cards[deck.deck.index(card)] = 1
+
+            owned_cards = player.cards #this is redundant but left in order to remind me of the change in structure
 
 
             current_suit = deck.legal(turn_cards,player.cards,self.trump)
@@ -120,28 +119,32 @@ class Game:
         
         for _ in range(self.current_round):
             for player in self.players:
-                player.cards.append(round_deck.pop(-1)) 
+                player.cards[deck.deck.index(round_deck.pop(-1))] = 1
                 #pop not only removes the item at index but also returns it
         
         for player in self.players:
             player.round_score = 0
         
-        self.bids = []
+        self.bids = torch.zeros(self.players.shape)#bids that are not yet given become 0 (bids are normalized so 0 is the expected bid)
         
         for player in self.players:
 
             #____________________________________________________
             #bid estimation BOTS
-            player.bid_net.list_input(0,[0,0,0,0]) #s.t. bids that are not yet given become 0 (the average bid height)
-            if self.bids:
-                player.bid_net.list_input(0,[bid[0] - (len(player.cards)/4) for bid in self.bids])  #how high all the players bid minus the average expected amount of suits they win
-            player.bid_net.list_input(4,[1 if _ == len(player.cards) else 0 for _ in range(self.max_rounds)])                 #how many cards there are in his hand
-            player.bid_net.list_input(19,[1 if _ == self.players.index(player) else 0 for _ in range(number_of_players)])      #what place in the players the player has
-            player.bid_net.list_input(23,[1 if _ == self.trump else 0 for _ in range(6)]) #which color is currently trump
-
-            player.bid_net.list_input(29,[ 1 if card in player.cards else 0 for card in deck.deck  ])# cards in hand
             
-            last_player_bool = (True if self.players.index(player) ==  3 else False)
+            n_cards = torch.zeros(self.max_rounds)
+            n_cards[len(player.cards)] = 1#how many cards there are in his hand
+            player_idx = torch.zeros(self.n_players)
+            player_idx[self.players.index(player,0,n_players)] = 1#what place in the players the player has
+
+            owned_cards = torch.zeros(60)
+            for card in player.cards:
+                owned_cards[deck.deck.index(card)] = 1 # cards in hand
+            last_player_bool = torch.zeros(1)
+            if self.players.index(player) ==  3
+                last_player_bool[0] = 1
+                
+            #bid as input!!
             self.bids.append([player.bid(self.current_round,last_player = last_player_bool)])
 
             
