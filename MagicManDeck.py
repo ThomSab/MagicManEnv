@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 
 
 #______________________________________________________________________________________
@@ -29,7 +30,7 @@ class Card:
     def __repr__(self):
         return self.name 
         
-deck = [Card(j,i) for j in range(4) for i in range(15)]
+deck = [Card(color,value) for color in range(4) for value in range(15)]
 
 #______________________________________________________________________________________
 #methods
@@ -86,6 +87,8 @@ def turn_value (played,cards,trump,current_suit): #turn value --> value is the i
 
  
 def legal (played,hand,trump): #legal to play in this turn --> wich cards are allowed and which aren't
+
+    hand = [deck[_] for _ in hand if _==1]
 
     for card in hand:
         card.legal = True

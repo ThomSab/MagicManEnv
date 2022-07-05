@@ -2,36 +2,46 @@ import numpy as np
 import os
 import sys
 import json
-import magic_man_deck as deck
+import MagicManDeck as deck
 import torch
 
 
 #______________________________________________________________________________
 #Player Class constructor
 
-class Player:
+class AdversaryPlayer:
 
 
-    def __init__(self,network):
+    def __init__(self,play_network,bid_network):
         
-        self.network = network
+        self.play_network = play_network
         
         self.round_score = 0
         self.game_score  = 0
         self.cards = torch.zeros(60) #one-hot encoded deck
        
        
-    def play (self):
-        try:
-            activation = self.play_net.activation()
-        except RecursionError:
-            raise RecursionError
-            
+    def play (self,obs):
+        action_distribution = self.play_network(obs)
+        card_activation = self.cards*activation #sort out those that the player cant play
         
-        hand_cards = np.array([ [1] if (card in self.cards and card.legal) else [0] for card in deck.deck ])
-        card_activation = hand_cards*activation #sort out those that the player cant play
-        bestcard_idx = np.where(card_activation == card_activation.max())[0][0]
-        played_card = deck.deck[bestcard_idx]
+        
         self.cards.remove(played_card)
         return played_card
+    
+    def bid (self,obs):
+        bid = self.bid_network(obs)
+        return bid
 
+class TrainPlayer:
+    
+    def __init__(self):
+        self.round_score = 0
+        self.game_score  = 0
+        self.cards = torch.zeros(60) #one-hot encoded deck
+        
+    def play(self):
+        raise UserWarning("Train Player input is external not internal --> DO NOT CALL trainplayer.play()") 
+    
+    def bid(self):
+        raise UserWarning("Train Player input is external not internal --> DO NOT CALL trainplayer.bid()") 
