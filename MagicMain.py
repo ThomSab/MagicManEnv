@@ -32,7 +32,7 @@ class Game:
         self.n_players = len(self.players)
         self.max_rounds = int(60/self.n_players)
         self.current_round = 0
-        self.bids = torch.full(self.n_players,torch.round(self.current_round/self.n_players))
+        self.bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
         self.trump = 0 #trump is red every time so the bots have a better time learning
         random.shuffle(self.players)
         self.players = deque(self.players) #pick from a list of players
@@ -53,7 +53,7 @@ class Game:
     
     def reset(self):
         self.round_deck = []
-        self.bids = torch.zeros(self.n_players)
+        self.bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
         random.shuffle(self.players)
         self.players = deque(self.players)
         self.turnorder_idx = 0
@@ -133,7 +133,8 @@ class Game:
                 for card in player.cards_obj:
                     if card.legal:
                         player.cards_tensor[deck.deck.index(card)] = 1
-                            
+
+                
                 player_obs = torch.cat((norm_bids,
                                         self.all_bid_completion,
                                         player_idx,
@@ -191,7 +192,7 @@ class Game:
                 player.cards_obj.append(self.round_deck.pop(-1))
                 #pop not only removes the item at index but also returns it
                 
-        self.bids = torch.full(self.n_players,torch.round(self.current_round/self.n_players))#bids that are not yet given become 0 (bids are normalized so 0 is the expected bid)
+        self.bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))#bids that are not yet given become 0 (bids are normalized so 0 is the expected bid)
 
         self.bid_idx = 0
         self.done = False
@@ -241,8 +242,8 @@ class Game:
                     self.bid_obs = player_obs
                     return self.bid_obs, self.r, self.done, self.info
                 else:
-                    player.current_bid = torch.round(self.current_round/self.n_players)
-                    self.bids[bid_idx] = player.current_bid
+                    player.current_bid = round(self.current_round/self.n_players)
+                    self.bids[self.bid_idx] = player.current_bid
                     self.bid_idx += 1
             else:
                 raise UserWarning (f"Player is {type(player)} not instance of either AdversaryPlayer or TrainPlayer")
@@ -283,9 +284,9 @@ if __name__ == "__main__":
     game = Game(train_player, adversary_players)
     game.current_round = 8
     obs,r,done,info = game.reset()
-    obs,r,done,info = game.bid_step(0)
     while not done:
-        obs,r,done,info = game.turn_step(deck.deck.index(game.train_player.cards_obj[0]))
+        player_action = deck.deck.index(game.train_player.cards_obj[0])
+        obs,r,done,info = game.turn_step(player_action)
         print(r,done)
     
 
