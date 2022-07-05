@@ -129,10 +129,10 @@ class Game:
                 played_cards = torch.zeros(60)
                 for card in self.turn_cards:
                     played_cards[deck.deck.index(card)] = 1
-                self.cards_tensor = torch.zeros(60)
+                player.cards_tensor = torch.zeros(60)
                 for card in player.cards_obj:
                     if card.legal:
-                        self.cards_tensor[deck.deck.index(card)] = 1
+                        player.cards_tensor[deck.deck.index(card)] = 1
                             
                 player_obs = torch.cat((norm_bids,
                                         self.all_bid_completion,
@@ -142,7 +142,6 @@ class Game:
                                         played_cards,
                                         player.cards_tensor,
                                         self.current_suit),dim=0)
-                print(self.turnorder_idx)
 
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
@@ -153,12 +152,12 @@ class Game:
                     self.turn_cards.append(played_card)
                     self.turnorder_idx +=1
                 elif isinstance(player,TrainPlayer):
+                    
                     self.turn_obs = player_obs
                     return self.turn_obs, self.r, self.done, self.info
                 else:
                     raise UserWarning (f"Player is {type(player)} not instance of either AdversaryPlayer or TrainPlayer")            
                 
-            print(self.turnorder_idx == (self.n_players))
             if self.turnorder_idx == (self.n_players):
                 
                 deck.turn_value(self.turn_cards,self.trump,self.current_suit_idx) #turn value of the players cards    
@@ -174,8 +173,8 @@ class Game:
 
                 self.turn_idx += 1
             
-        if self.turn_idx == self.current_round+1:
-            return self.conclude_step()
+                if self.turn_idx == self.current_round+1:
+                    return self.conclude_step()
 
         raise UserWarning (f"Turn Step should have returned an Observation but has not")
 
@@ -280,7 +279,6 @@ if __name__ == "__main__":
     game.current_round = 8
     obs,r,done,info = game.reset()
     obs,r,done,info = game.bid_step(0)
-    print(train_player.cards_obj)
     while not done:
         obs,r,done,info = game.turn_step(deck.deck.index(game.train_player.cards_obj[0]))
         print(r,done)
