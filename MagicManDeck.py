@@ -57,7 +57,7 @@ def rv(cards,trump): #round value --> what the cards are worth at the start of t
     
 
 
-def turn_value (played,cards,trump,current_suit): #turn value --> value is the index in the winning order of cards --> value of the first magic man should be the ceiling and the last jester is the floor
+def turn_value (cards,trump,current_suit): #turn value --> value is the index in the winning order of cards --> value of the first magic man should be the ceiling and the last jester is the floor
     
     if current_suit != None:
         suit = current_suit #suit --> welche farbe angespielt wurde
@@ -65,15 +65,15 @@ def turn_value (played,cards,trump,current_suit): #turn value --> value is the i
     for card in cards:
         if card.legal:
             if   card.value == 14:
-                card.turn_value = 60 - played.index(card)
+                card.turn_value = 60 - cards.index(card)
                 
             elif card.value == 0:
-                card.turn_value = 4  - played.index(card)
+                card.turn_value = 4  - cards.index(card)
                 
             elif card.color == trump:
                 card.turn_value = 43 + card.value
                 
-            elif len(played) == 0 or card.color == current_suit:
+            elif len(cards) == 0 or card.color == current_suit:
                 card.turn_value = 30 + card.value
             
             elif card.color != current_suit and card.color != trump:
@@ -93,7 +93,7 @@ def legal (played,hand,trump): #legal to play in this turn --> wich cards are al
     for card in hand:
         card.legal = True
 
-    suit = None
+    suit = 5 #same as fool or no suit at all
     can_serve_suit = False
 
     foolean = True #bool for "there have only been fools played so far" --> this is True when there havent been played any cards yet
@@ -103,8 +103,8 @@ def legal (played,hand,trump): #legal to play in this turn --> wich cards are al
             if played[count].color != 5: #something else that fool or magic man is played
                 suit = played[count].color #suit --> welche farbe angespielt wurde
                 foolean = False
-            elif played[count].color == 4: #no suit when a wizard is played before any other card
-                suit = None
+            elif played[count].color == 4: #no suit [i.e. 5] when a wizard is played before any other card
+                suit = 4
                 foolean = False
             elif played[count].color == 5: #a fool is played
                 count += 1
