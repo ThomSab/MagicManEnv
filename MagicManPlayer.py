@@ -30,7 +30,15 @@ class AdversaryPlayer:
         return played_card
     
     def bid (self,obs):
-        bid = self.bid_network(obs)
+        activation = self.bid_network(obs)
+        
+        self.current_activation = ((utils.logit_bidding(activation[0])*round_idx)/4)
+            #multiply by the number of card in hand
+            #then divide by the amount of players 
+            #to have a better starting point for the bots
+        self.current_bid = np.round(self.current_activation)
+        #might be an illegal move but ill ignore that for now
+        
         return bid
 
 class TrainPlayer:
