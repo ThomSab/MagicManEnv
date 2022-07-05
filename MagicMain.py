@@ -32,7 +32,7 @@ class Game:
         self.n_players = len(self.players)
         self.max_rounds = int(60/self.n_players)
         self.current_round = 0
-        self.bids = torch.zeros(self.n_players)
+        self.bids = torch.full(self.n_players,torch.round(self.current_round/self.n_players))
         self.trump = 0 #trump is red every time so the bots have a better time learning
         random.shuffle(self.players)
         self.players = deque(self.players) #pick from a list of players
@@ -191,7 +191,7 @@ class Game:
                 player.cards_obj.append(self.round_deck.pop(-1))
                 #pop not only removes the item at index but also returns it
                 
-        self.bids = torch.zeros(self.n_players)#bids that are not yet given become 0 (bids are normalized so 0 is the expected bid)
+        self.bids = torch.full(self.n_players,torch.round(self.current_round/self.n_players))#bids that are not yet given become 0 (bids are normalized so 0 is the expected bid)
 
         self.bid_idx = 0
         self.done = False
@@ -201,7 +201,7 @@ class Game:
         return self.bid_obs, self.r, self.done, self.info
 
 
-    def bid_step(self,action,lastround = False): # !!not turn
+    def bid_step(self,action,active_bid=False): # !!not turn
         
         if action is not None:
             self.bids[self.bid_idx] = action
@@ -237,8 +237,13 @@ class Game:
                 self.bids[self.bid_idx] = player.bid(player_obs)
                 self.bid_idx += 1
             elif isinstance(player,TrainPlayer):
-                self.bid_obs = player_obs
-                return self.bid_obs, self.r, self.done, self.info
+                if active_bid:
+                    self.bid_obs = player_obs
+                    return self.bid_obs, self.r, self.done, self.info
+                else:
+                    player.current_bid = torch.round(self.current_round/self.n_players)
+                    self.bids[bid_idx] = player.current_bid
+                    self.bid_idx += 1
             else:
                 raise UserWarning (f"Player is {type(player)} not instance of either AdversaryPlayer or TrainPlayer")
                 
