@@ -9,22 +9,12 @@ import MagicManDeck  as deck
 from MagicManPlayer import AdversaryPlayer, TrainPlayer
 
 
-"""
-Currently all activations are passed in lists
-so its
-node.activation = [1] instead of
-node.activation = 1
-
---> ToDo
-"""
-
-number_of_players = 4
-
 class Game:
 
     def __init__(self,train_player,adversary_players):
 
         self.round_deck = []
+        self.players = []
         self.players = adversary_players
         self.train_player = train_player
         self.players.append(self.train_player)
@@ -256,7 +246,7 @@ class Game:
 
     def conclude_step(self):
         assert self.turn_idx == self.current_round+1, (f"Turn index is {self.turn_idx} and should be equal to Current Round [{self.current_round}]")       
-        game.state="CONCLUDE"
+        self.state="CONCLUDE"
         for player in self.players:
 
             if player.current_bid == player.round_suits:
@@ -280,14 +270,15 @@ class Game:
 
 
 if __name__ == "__main__":
-    train_player = TrainPlayer()
+    demo_train_player = TrainPlayer()
+
     adversary_players = [AdversaryPlayer(net.PlayNet(),net.BidNet()) for _ in range(3)]
-    game = Game(train_player, adversary_players)
-    game.current_round = 0
-    obs,r,done,info = game.reset()
+    env = Game(demo_train_player, adversary_players)
+    env.current_round = 8
+    obs,r,done,info = env.reset()
     while not done:
-        player_action = deck.deck.index(game.train_player.cards_obj[0])
-        obs,r,done,info = game.turn_step(player_action)
+        player_action = deck.deck.index(env.train_player.cards_obj[0])
+        obs,r,done,info = env.turn_step(player_action)
         print(r,done)
     
 
