@@ -25,7 +25,7 @@ class AdversaryPlayer:
        
     def play (self,obs):
         action_distribution = self.play_network(obs)
-        card_activation = self.cards_tensor*action_distribution #sort out those that the player cant play
+         #sort out those that the player cant play
 
         return card_activation
     
