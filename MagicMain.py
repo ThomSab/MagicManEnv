@@ -126,14 +126,14 @@ class Game:
                     if card.legal:
                         player.cards_tensor[deck.deck.index(card)] = 1
 
-                player_obs = torch.cat((norm_bids,
-                                        self.all_bid_completion,
-                                        player_idx,
-                                        player_self_bid_completion,
-                                        n_cards,
-                                        played_cards,
-                                        player.cards_tensor,
-                                        self.current_suit),dim=0).to(device=self.device)
+                player_obs = torch.cat((norm_bids.to(device=self.device),
+                                        self.all_bid_completion.to(device=self.device),
+                                        player_idx.to(device=self.device),
+                                        player_self_bid_completion.to(device=self.device),
+                                        n_cards.to(device=self.device),
+                                        played_cards.to(device=self.device),
+                                        player.cards_tensor.to(device=self.device),
+                                        self.current_suit.to(device=self.device)),dim=0)
 
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
@@ -170,7 +170,7 @@ class Game:
 
         raise UserWarning (f"Turn Step should have returned an Observation but has not")
 
-    def init_bid_step(self):
+    def init_bid_step(self,active_bid=False):
 
         self.state = "BID"
         
@@ -188,9 +188,13 @@ class Game:
         self.bid_idx = 0
         self.done = False
         self.r,self.info = 0,None
-        
-        self.bid_obs, self.r, self.done, self.info = self.bid_step(action=None)
-        return self.bid_obs, self.r, self.done, self.info
+
+        if active_bid:
+            self.bid_obs, self.r, self.done, self.info = self.bid_step(action=None,active_bid=active_bid)
+            return self.bid_obs, self.r, self.done, self.info
+        else:
+            self.turn_obs, self.r, self.done, self.info = self.bid_step(action=None,active_bid=active_bid)
+            return self.turn_obs, self.r, self.done, self.info
 
 
     def bid_step(self,action,active_bid=False): # !!not turn
