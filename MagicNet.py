@@ -7,11 +7,9 @@ class PlayNet(nn.Module):
         super().__init__()
                  
         self.fc = nn.Sequential(
-              nn.Linear(input_size,64),
+              nn.Linear(input_size,256),
               nn.ReLU(),
-              nn.Linear(64, 32),
-              nn.ReLU(),
-              nn.Linear(32, num_actions),
+              nn.Linear(256, num_actions),
               nn.Softmax(dim=-1)
           )
 
@@ -33,11 +31,9 @@ class BidNet(nn.Module):
         
            
         self.fc = nn.Sequential(
-              nn.Linear(input_size,64),
+              nn.Linear(input_size,256),
               nn.ReLU(),
-              nn.Linear(64, 32),
-              nn.ReLU(),
-              nn.Linear(32, num_actions)
+              nn.Linear(256, num_actions)
           )
 
     def forward(self, x):
