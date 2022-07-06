@@ -138,8 +138,8 @@ class Game:
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
                     net_out = player.play(player_obs.to(device=self.device))
-                    card_activation = player.cards_tensor*net_out
-                    action_idx = torch.argmax(card_activation)
+                    card_activation = player.cards_tensor.cuda()*net_out.cuda()
+                    action_idx = torch.argmax(card_activation.cuda())
                     played_card = deck.deck[action_idx]
                     player.cards_obj.remove(played_card)
                     self.turn_cards.append(played_card)
