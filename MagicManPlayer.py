@@ -21,7 +21,7 @@ class AdversaryPlayer:
         self.game_score  = 0
         self.cards_obj = []
         self.cards_tensor = torch.zeros(60) #one-hot encoded deck
-        self.error_string = None
+        self.error_string = "empty"
        
        
     def play (self,obs):
