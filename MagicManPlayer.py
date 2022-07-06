@@ -25,10 +25,8 @@ class AdversaryPlayer:
        
        
     def play (self,obs):
-        try:
-            action_distribution = self.play_network(obs)
-        except:
-            self.error_string = (f"device check\n\tnet device: {self.play_network.device}\n\tobs device: {obs.device}")
+        action_distribution = self.play_network(obs)
+
         #sort out those that the player cant play
 
         return action_distribution
