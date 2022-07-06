@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class PlayNet(nn.Module):
 
-    def __init__(self, input_size = 154 ,num_actions = 60):
+    def __init__(self, input_size = 21376 ,num_actions = 60):
         super().__init__()
                  
         self.fc = nn.Sequential(
@@ -14,6 +14,7 @@ class PlayNet(nn.Module):
           )
 
     def forward(self, x):
+        x = torch.flatten(x)
         if torch.cuda.is_available():
             x = torch.tensor(x, dtype=torch.float).cuda()
         #if len(x.size()) == 3:

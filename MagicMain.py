@@ -36,8 +36,13 @@ class Game:
         self.all_bid_completion = torch.zeros(self.n_players)
         
         #Observation Variables:
+        self.single_obs_size = 3006
+        self.stack_obs_size = self.single_obs_size*self.current_round
         self.bid_obs = None
+        print("Bid observations are not stacked yet. Has to be implemented in the future.")
+        print("Bid input is not ordered. Has to be implemented in the future.")
         self.turn_obs = None
+        self.turn_obs_stack = []
         self.r = 0
         self.info = None
         self.done = False
@@ -56,6 +61,7 @@ class Game:
         
         self.bid_obs = None
         self.turn_obs = None
+        self.turn_obs_stack = []
         self.r = 0
         self.info = None
         self.done = False
@@ -118,9 +124,12 @@ class Game:
                 self.current_suit_idx = deck.legal(self.turn_cards,player.cards_obj,self.trump)
                 self.current_suit[self.current_suit_idx] = 1
 
-                played_cards = torch.zeros(60)
-                for card in self.turn_cards:
-                    played_cards[deck.deck.index(card)] = 1
+                played_cards = torch.zeros(self.n_players,60)
+                for card_idx in range(len(self.turn_cards)):
+                    card = self.turn_cards[card_idx]
+                    played_cards[card_idx][deck.deck.index(card)] = 1
+                played_cards = torch.flatten(played_cards)                
+                    
                 player.cards_tensor = torch.zeros(60)
                 for card in player.cards_obj:
                     if card.legal:
@@ -135,11 +144,36 @@ class Game:
                                         player.cards_tensor.to(device=self.device),
                                         self.current_suit.to(device=self.device)),dim=0)
 
+                """
+                print(player_obs.shape)
+                self.turn_obs_stack.append(player_obs)
+
+                player_obs = []
+                for stack_obs in self.turn_obs_stack:
+                    player_obs.append(stack_obs)
+                for _ in range(self.current_round - len(player_obs)):
+                    player_obs.append(torch.zeros(self.single_obs_size))
+
+                print(len(player_obs))
+                player_obs = torch.cat(player_obs)
+
+                print(player_obs.shape)
+                """
+
+                """
+                Each player has a different stack of observations
+                Has to be implemented
+                """
+
+                
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
                     net_out = player.play(player_obs.to(device=self.device))
-                    card_activation = player.cards_tensor.cuda()*net_out.cuda()
-                    action_idx = torch.argmax(card_activation.cuda())
+
+                    card_activation = player.cards_tensor.to(device=self.device)*net_out.to(device=self.device)
+                    action_idx = torch.argmax(card_activation.to(device=self.device))
+
+                        
                     played_card = deck.deck[action_idx]
                     player.cards_obj.remove(played_card)
                     self.turn_cards.append(played_card)
@@ -157,11 +191,12 @@ class Game:
                 winner = self.players[[card.turn_value for card in self.turn_cards].index(max(card.turn_value for card in self.turn_cards))]        
                 self.starting_player(winner)# --> rearanges the players of the player such that the winner is in the first position
 
-                winner.round_suits += 1 #winner of the suit    
+                winner.round_suits += 1 #winner of the suit
 
                 all_round_scores = torch.tensor([player.round_suits for player in self.noorder_players])
                 self.all_bid_completion = torch.tanh(all_round_scores-self.bids)
                 self.turn_cards = []
+                self.turn_obs_stack = []
                 self.turnorder_idx = 0
 
                 self.turn_idx += 1
