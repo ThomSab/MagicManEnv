@@ -238,6 +238,7 @@ class Game:
                 self.bids[self.bid_idx] = player.bid(player_obs)
                 self.bid_idx += 1
             elif isinstance(player,TrainPlayer):
+                print("train player turn")
                 if active_bid:
                     self.bid_obs = player_obs
                     return self.bid_obs, self.r, self.done, self.info
@@ -282,7 +283,7 @@ if __name__ == "__main__":
     train_player = TrainPlayer()
     adversary_players = [AdversaryPlayer(net.PlayNet(),net.BidNet()) for _ in range(3)]
     game = Game(train_player, adversary_players)
-    game.current_round = 8
+    game.current_round = 0
     obs,r,done,info = game.reset()
     while not done:
         player_action = deck.deck.index(game.train_player.cards_obj[0])
