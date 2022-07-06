@@ -11,8 +11,10 @@ from MagicManPlayer import AdversaryPlayer, TrainPlayer
 
 class Game:
 
-    def __init__(self,train_player,adversary_players):
+    def __init__(self,train_player,adversary_players,device=torch.device('cpu')):
 
+        self.device = device
+    
         self.round_deck = []
         self.players = []
         self.players = adversary_players
@@ -132,7 +134,7 @@ class Game:
                                         n_cards,
                                         played_cards,
                                         player.cards_tensor,
-                                        self.current_suit),dim=0)
+                                        self.current_suit),dim=0).to(device=self.device)
 
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
@@ -222,7 +224,7 @@ class Game:
                                     player_idx,
                                     n_cards,
                                     player.cards_tensor,
-                                    torch.tensor([self.current_round])),dim=0)
+                                    torch.tensor([self.current_round])),dim=0).to(device=self.device)
             
             if isinstance(player,AdversaryPlayer):
                 self.bids[self.bid_idx] = player.bid(player_obs)
