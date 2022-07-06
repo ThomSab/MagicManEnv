@@ -24,10 +24,13 @@ class AdversaryPlayer:
        
        
     def play (self,obs):
-        action_distribution = self.play_network(obs)
-         #sort out those that the player cant play
+        try:
+            action_distribution = self.play_network(obs)
+        except:
+            raise UserWarning(f"device check\n\tnet device: {self.play_network.device}\n\tobs device: {obs.device}")
+        #sort out those that the player cant play
 
-        return card_activation
+        return action_distribution
     
     def bid (self,obs):
         activation = self.bid_network(obs)
