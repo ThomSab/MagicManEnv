@@ -126,7 +126,6 @@ class Game:
                     if card.legal:
                         player.cards_tensor[deck.deck.index(card)] = 1
 
-                
                 player_obs = torch.cat((norm_bids,
                                         self.all_bid_completion,
                                         player_idx,
@@ -219,7 +218,7 @@ class Game:
             #    last_player_bool[0] = 1
             
             norm_bids = (self.bids-self.bids.mean())/(self.bids.std()+1e-5)
-
+            
             player_obs = torch.cat((norm_bids,
                                     player_idx,
                                     n_cards,
@@ -230,7 +229,6 @@ class Game:
                 self.bids[self.bid_idx] = player.bid(player_obs)
                 self.bid_idx += 1
             elif isinstance(player,TrainPlayer):
-                print("train player turn")
                 if active_bid:
                     self.bid_obs = player_obs
                     return self.bid_obs, self.r, self.done, self.info
