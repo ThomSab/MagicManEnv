@@ -21,13 +21,14 @@ class AdversaryPlayer:
         self.game_score  = 0
         self.cards_obj = []
         self.cards_tensor = torch.zeros(60) #one-hot encoded deck
+        self.error_string = None
        
        
     def play (self,obs):
         try:
             action_distribution = self.play_network(obs)
-        except:
-            raise UserWarning(f"device check\n\tnet device: {self.play_network.device}\n\tobs device: {obs.device}")
+        except RuntimeError:
+            self.error_string = (f"device check\n\tnet device: {self.play_network.device}\n\tobs device: {obs.device}")
         #sort out those that the player cant play
 
         return action_distribution
