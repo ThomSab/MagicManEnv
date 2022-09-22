@@ -98,7 +98,8 @@ class Game:
         if action is None:
             assert self.turnorder_idx==0, f"The turn index is {self.turnorder_idx} | Should be 0."
         
-        norm_bids = (self.bids-self.bids.mean())/(self.bids.std()+1e-5)
+        expected_bid_mean = self.current_round/self.n_players
+        norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
         
         while True: #returns when necessary
             if not self.turnorder_idx == (self.n_players):
@@ -121,19 +122,37 @@ class Game:
                 n_cards = torch.zeros(self.max_rounds)
                 n_cards[int(player.cards_tensor.sum()-1)] = 1 #how many cards there are in his hand
 
+                self.current_suit = torch.zeros(6)
                 self.current_suit_idx = deck.legal(self.turn_cards,player.cards_obj,self.trump)
                 self.current_suit[self.current_suit_idx] = 1
 
                 played_cards = torch.zeros(self.n_players,60)
                 for card_idx in range(len(self.turn_cards)):
-                    card = self.turn_cards[card_idx]
-                    played_cards[card_idx][deck.deck.index(card)] = 1
-                played_cards = torch.flatten(played_cards)                
+                    played_card = self.turn_cards[card_idx]
+                    played_cards[card_idx][deck.deck.index(played_card)] = 1
+                
+                """
+                print("player name",player.name)
+                print("norm bids ",norm_bids)
+                print("all bid completion",self.all_bid_completion)
+                print("player idx",player_idx)
+                print("player self bid completion ",player_self_bid_completion)
+                print("n cards",n_cards)
+                print("played cards",played_cards)
+                print("current suit",self.current_suit)                    
+                """    
                     
+                played_cards = torch.flatten(played_cards)                
+                
+
+                
                 player.cards_tensor = torch.zeros(60)
                 for card in player.cards_obj:
                     if card.legal:
                         player.cards_tensor[deck.deck.index(card)] = 1
+
+                #print("player cards tensor",player.cards_tensor.shape)
+
 
                 player_obs = torch.cat((norm_bids.to(device=self.device),
                                         self.all_bid_completion.to(device=self.device),
@@ -143,23 +162,8 @@ class Game:
                                         played_cards.to(device=self.device),
                                         player.cards_tensor.to(device=self.device),
                                         self.current_suit.to(device=self.device)),dim=0)
-
-                """
-                print(player_obs.shape)
-                self.turn_obs_stack.append(player_obs)
-
-                player_obs = []
-                for stack_obs in self.turn_obs_stack:
-                    player_obs.append(stack_obs)
-                for _ in range(self.current_round - len(player_obs)):
-                    player_obs.append(torch.zeros(self.single_obs_size))
-
-                print(len(player_obs))
-                player_obs = torch.cat(player_obs)
-
-                print(player_obs.shape)
-                """
-
+                
+               
                 """
                 Each player has a different stack of observations
                 Has to be implemented
@@ -172,16 +176,16 @@ class Game:
 
                     card_activation = player.cards_tensor.to(device=self.device)*net_out.to(device=self.device)
                     action_idx = torch.argmax(card_activation.to(device=self.device))
-
                         
                     played_card = deck.deck[action_idx]
                     player.cards_obj.remove(played_card)
                     self.turn_cards.append(played_card)
                     self.turnorder_idx +=1
-                elif isinstance(player,TrainPlayer):
                     
+                elif isinstance(player,TrainPlayer):
                     self.turn_obs = player_obs
                     return self.turn_obs, self.r, self.done, self.info
+                    
                 else:
                     raise UserWarning (f"Player is {type(player)} not instance of either AdversaryPlayer or TrainPlayer")            
                 

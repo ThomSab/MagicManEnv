@@ -2,6 +2,7 @@ import numpy as np
 import os
 import sys
 import json
+import random
 import MagicManDeck as deck
 import torch
 
@@ -13,6 +14,8 @@ class AdversaryPlayer:
 
 
     def __init__(self,play_network,bid_network):
+        
+        self.name = "AdversaryPlayer"+str(random.randint(111111,999999))
         
         self.play_network = play_network
         self.bid_network = bid_network
@@ -49,6 +52,9 @@ class AdversaryPlayer:
 class TrainPlayer:
     
     def __init__(self):
+    
+        self.name = "TrainPlayer"+str(random.randint(111111,999999))
+    
         self.round_score = 0
         self.game_score  = 0
         self.cards_obj = []
