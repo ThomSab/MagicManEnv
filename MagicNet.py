@@ -3,7 +3,7 @@ import torch.nn as nn
 
 class PlayNet(nn.Module):
 
-    def __init__(self, input_size = 334 ,num_actions = 60):
+    def __init__(self, input_size = 8*334 ,num_actions = 60):
         super().__init__()
                  
         self.fc = nn.Sequential(

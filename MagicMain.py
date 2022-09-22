@@ -36,13 +36,11 @@ class Game:
         self.all_bid_completion = torch.zeros(self.n_players)
         
         #Observation Variables:
-        self.single_obs_size = 3006
-        self.stack_obs_size = self.single_obs_size*self.current_round
+        self.turn_obs_size = 334
         self.bid_obs = None
         print("Bid observations are not stacked yet. Has to be implemented in the future.")
         print("Bid input is not ordered. Has to be implemented in the future.")
         self.turn_obs = None
-        self.turn_obs_stack = []
         self.r = 0
         self.info = None
         self.done = False
@@ -61,7 +59,6 @@ class Game:
         
         self.bid_obs = None
         self.turn_obs = None
-        self.turn_obs_stack = []
         self.r = 0
         self.info = None
         self.done = False
@@ -71,6 +68,7 @@ class Game:
             player.game_score = 0
             player.cards_obj = []
             player.cards_tensor = torch.zeros(self.max_rounds)
+            player.round_obs = torch.zeros(self.current_round,self.turn_obs_size)
 
         obs,r,done,info = self.init_bid_step()
         
@@ -154,7 +152,7 @@ class Game:
                 #print("player cards tensor",player.cards_tensor.shape)
 
 
-                player_obs = torch.cat((norm_bids.to(device=self.device),
+                player_turn_obs = torch.cat((norm_bids.to(device=self.device),
                                         self.all_bid_completion.to(device=self.device),
                                         player_idx.to(device=self.device),
                                         player_self_bid_completion.to(device=self.device),
@@ -163,7 +161,9 @@ class Game:
                                         player.cards_tensor.to(device=self.device),
                                         self.current_suit.to(device=self.device)),dim=0)
                 
-               
+                player.round_obs[self.turn_idx] = player_turn_obs #incomplete information to be completed at the end of turn
+                player_obs = player.round_obs.flatten()
+                
                 """
                 Each player has a different stack of observations
                 Has to be implemented
@@ -191,6 +191,9 @@ class Game:
                 
             if self.turnorder_idx == (self.n_players):
                 
+                
+                self.compute_final_turn_observations()
+                
                 deck.turn_value(self.turn_cards,self.trump,self.current_suit_idx) #turn value of the players cards    
                 winner = self.players[[card.turn_value for card in self.turn_cards].index(max(card.turn_value for card in self.turn_cards))]        
                 self.starting_player(winner)# --> rearanges the players of the player such that the winner is in the first position
@@ -200,15 +203,48 @@ class Game:
                 all_round_scores = torch.tensor([player.round_suits for player in self.noorder_players])
                 self.all_bid_completion = torch.tanh(all_round_scores-self.bids)
                 self.turn_cards = []
-                self.turn_obs_stack = []
                 self.turnorder_idx = 0
 
                 self.turn_idx += 1
             
-                if self.turn_idx == self.current_round+1:
+                if self.turn_idx == self.current_round:
                     return self.conclude_step()
 
         raise UserWarning (f"Turn Step should have returned an Observation but has not")
+
+    def compute_final_turn_observations(self):
+        
+        expected_bid_mean = self.current_round/self.n_players
+        norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
+        
+        for player_idx,player in enumerate(self.players):
+        
+            player_idx_tensor = torch.zeros(self.n_players)
+            player_idx_tensor[player_idx] = 1
+            
+            player_self_bid_completion = torch.tanh(torch.tensor(player.round_suits-player.current_bid))
+            player_self_bid_completion = torch.unsqueeze(player_self_bid_completion,0)
+            
+            n_cards = torch.zeros(self.max_rounds)
+            n_cards[int(player.cards_tensor.sum()-1)] = 1 #how many cards there are in his hand
+            
+            played_cards = torch.zeros(self.n_players,60)
+            for card_idx in range(len(self.turn_cards)):
+                played_card = self.turn_cards[card_idx]
+                played_cards[card_idx][deck.deck.index(played_card)] = 1
+            
+            played_cards = torch.flatten(played_cards) 
+            
+            player_turn_obs = torch.cat((norm_bids.to(device=self.device),
+                                        self.all_bid_completion.to(device=self.device),
+                                        player_idx_tensor.to(device=self.device),
+                                        player_self_bid_completion.to(device=self.device),
+                                        n_cards.to(device=self.device),
+                                        played_cards.to(device=self.device),
+                                        player.cards_tensor.to(device=self.device),
+                                        self.current_suit.to(device=self.device)),dim=0)
+                        
+            player.round_obs[self.turn_idx] = player_turn_obs
 
     def init_bid_step(self,active_bid=False):
 
@@ -289,7 +325,7 @@ class Game:
 
 
     def conclude_step(self):
-        assert self.turn_idx == self.current_round+1, (f"Turn index is {self.turn_idx} and should be equal to Current Round [{self.current_round}]")       
+        assert self.turn_idx == self.current_round, (f"Turn index is {self.turn_idx} and should be equal to Current Round [{self.current_round}]")       
         self.state="CONCLUDE"
         for player in self.players:
 
