@@ -286,7 +286,7 @@ class Game:
             player = self.players[self.bid_idx]
             
             n_cards = torch.zeros(self.max_rounds)
-            n_cards[len(player.cards_obj)] = 1 # how many cards there are in his hand
+            n_cards[len(player.cards_obj)-1] = 1 # how many cards there are in his hand
             player_idx = torch.zeros(self.n_players)
             player_idx[self.players.index(player,0,self.n_players)] = 1 # what place in the players the player has
 
