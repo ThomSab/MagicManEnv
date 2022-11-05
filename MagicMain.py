@@ -24,7 +24,7 @@ class Game:
         self.n_players = len(self.players)
         self.max_rounds = int(60/self.n_players)
         self.current_round = 0
-        self.bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
+        self.bids = torch.zeros(self.n_players)#torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
         self.trump = 0 #trump is red every time so the bots have a better time learning
         random.shuffle(self.players)
         self.players = deque(self.players) #pick from a list of players
@@ -48,7 +48,7 @@ class Game:
     
     def reset(self):
         self.round_deck = []
-        self.bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
+        self.bids = torch.zeros(self.n_players) #torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
         random.shuffle(self.players)
         self.players = deque(self.players)
         self.turnorder_idx = 0
@@ -99,7 +99,7 @@ class Game:
         expected_bid_mean = self.current_round/self.n_players
         norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
         if not self.bids.all():
-            norm_bids = self.bids
+            norm_bids = torch.zeros(4)#torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
         
         while True: #returns when necessary
             if not self.turnorder_idx == (self.n_players):
@@ -204,7 +204,7 @@ class Game:
         expected_bid_mean = self.current_round/self.n_players
         norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
         if not self.bids.all():
-            norm_bids = self.bids
+            norm_bids = torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
             
         for player_idx,player in enumerate(self.players):
         
@@ -288,7 +288,7 @@ class Game:
             
             norm_bids = (self.bids-self.bids.mean())/(self.bids.std()+1e-5)
             if not self.bids.all():
-                norm_bids = self.bids
+                norm_bids = torch.zeros(self.n_players)#torch.full(tuple([self.n_players]),float(round(self.current_round/self.n_players)))
             
             player_obs = torch.cat((norm_bids,
                                     player_idx,
@@ -347,6 +347,8 @@ if __name__ == "__main__":
     env = Game(demo_train_player, adversary_players)
     env.current_round = 2
     obs,r,done,info = env.reset()
+    
+    print(demo_train_player.current_bid)
     while not done:
         player_action = deck.deck.index(env.train_player.cards_obj[0])
         obs,r,done,info = env.turn_step(player_action)

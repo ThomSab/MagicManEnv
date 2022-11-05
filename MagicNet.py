@@ -15,7 +15,6 @@ class PlayNet(nn.Module):
 
     def forward(self, x):
         x = torch.flatten(x)
-        print(x)
         if torch.cuda.is_available():
             x = torch.tensor(x, dtype=torch.float).cuda()
         #if len(x.size()) == 3:
@@ -23,7 +22,6 @@ class PlayNet(nn.Module):
         #x = self.features(x)
         #x = x.reshape(x.size(0), -1)
         x = self.fc(x)
-        print(x)
         return x
         
 class BidNet(nn.Module):
