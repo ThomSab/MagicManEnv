@@ -33,7 +33,8 @@ class BidNet(nn.Module):
         self.fc = nn.Sequential(
               nn.Linear(input_size,256),
               nn.ReLU(),
-              nn.Linear(256, num_actions)
+              nn.Linear(256, num_actions),
+              nn.Sigmoid()
           )
 
     def forward(self, x):
