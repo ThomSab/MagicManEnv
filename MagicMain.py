@@ -89,6 +89,8 @@ class Game:
         
         if action is not None:
             played_card = deck.deck[action]
+            print(action)
+            print(played_card)
             self.turn_cards.append(played_card)
             self.train_player.cards_obj.remove(played_card)
             self.r,self.info = 0,None
@@ -98,6 +100,8 @@ class Game:
         
         expected_bid_mean = self.current_round/self.n_players
         norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
+        if not self.bids.all():
+            norm_bids = self.bids
         
         while True: #returns when necessary
             if not self.turnorder_idx == (self.n_players):
@@ -165,19 +169,24 @@ class Game:
                 player_obs = player.round_obs.flatten()
                 
                 """
-                Each player has a different stack of observations
-                Has to be implemented
+                Each player might have a different stack of observations
+                Emphasis is on order of players --> each player observes the order of the played cards differently
+                the player to a players immediate left is a different player for every player
                 """
 
                 
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
                     net_out = player.play(player_obs.to(device=self.device))
+                    print("net_out",net_out)
+                    print("cards_tensor",player.cards_tensor)
 
                     card_activation = player.cards_tensor.to(device=self.device)*net_out.to(device=self.device)
+                    print("card_activation",card_activation)
                     action_idx = torch.argmax(card_activation.to(device=self.device))
                         
                     played_card = deck.deck[action_idx]
+
                     player.cards_obj.remove(played_card)
                     self.turn_cards.append(played_card)
                     self.turnorder_idx +=1
@@ -190,7 +199,6 @@ class Game:
                     raise UserWarning (f"Player is {type(player)} not instance of either AdversaryPlayer or TrainPlayer")            
                 
             if self.turnorder_idx == (self.n_players):
-                
                 
                 self.compute_final_turn_observations()
                 
@@ -216,7 +224,9 @@ class Game:
         
         expected_bid_mean = self.current_round/self.n_players
         norm_bids = (self.bids-expected_bid_mean)/(self.bids.std()+1e-5)
-        
+        if not self.bids.all():
+            norm_bids = self.bids
+            
         for player_idx,player in enumerate(self.players):
         
             player_idx_tensor = torch.zeros(self.n_players)
@@ -298,6 +308,8 @@ class Game:
             #    last_player_bool[0] = 1
             
             norm_bids = (self.bids-self.bids.mean())/(self.bids.std()+1e-5)
+            if not self.bids.all():
+                norm_bids = self.bids
             
             player_obs = torch.cat((norm_bids,
                                     player_idx,
@@ -354,7 +366,7 @@ if __name__ == "__main__":
 
     adversary_players = [AdversaryPlayer(net.PlayNet(),net.BidNet()) for _ in range(3)]
     env = Game(demo_train_player, adversary_players)
-    env.current_round = 8
+    env.current_round = 2
     obs,r,done,info = env.reset()
     while not done:
         player_action = deck.deck.index(env.train_player.cards_obj[0])
