@@ -28,7 +28,6 @@ class BidNet(nn.Module):
 
     def __init__(self, input_size = 84, num_actions = 1):
         super().__init__()
-        
            
         self.fc = nn.Sequential(
               nn.Linear(input_size,256),
@@ -45,5 +44,4 @@ class BidNet(nn.Module):
         #x = self.features(x)
         #x = x.reshape(x.size(0), -1)
         x = self.fc(x)
-        print(x)
         return x

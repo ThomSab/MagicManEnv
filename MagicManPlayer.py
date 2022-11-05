@@ -33,9 +33,14 @@ class AdversaryPlayer:
     
     def bid (self,obs):
         activation = self.bid_network(obs)
-        self.bid_activation = activation[0]
         
-        return self.bid_activation
+        self.current_activation = activation[0]
+            #multiply by the number of card in hand
+            #then divide by the amount of players 
+            #to have a better starting point for the bots
+
+        
+        return self.current_activation
 
     def clean_hand(self):
         self.cards = []  

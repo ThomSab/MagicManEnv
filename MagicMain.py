@@ -297,7 +297,8 @@ class Game:
                                     torch.tensor([self.current_round])),dim=0).to(device=self.device)
             
             if isinstance(player,AdversaryPlayer):
-                self.bids[self.bid_idx] = player.bid(player_obs)
+                player.current_bid = round(((player.bid(player_obs)*self.current_round)/self.n_players).item())
+                self.bids[self.bid_idx] = player.current_bid
                 self.bid_idx += 1
             elif isinstance(player,TrainPlayer):
                 if active_bid:
