@@ -89,8 +89,6 @@ class Game:
         
         if action is not None:
             played_card = deck.deck[action]
-            print(action)
-            print(played_card)
             self.turn_cards.append(played_card)
             self.train_player.cards_obj.remove(played_card)
             self.r,self.info = 0,None
@@ -132,28 +130,13 @@ class Game:
                 for card_idx in range(len(self.turn_cards)):
                     played_card = self.turn_cards[card_idx]
                     played_cards[card_idx][deck.deck.index(played_card)] = 1
-                
-                """
-                print("player name",player.name)
-                print("norm bids ",norm_bids)
-                print("all bid completion",self.all_bid_completion)
-                print("player idx",player_idx)
-                print("player self bid completion ",player_self_bid_completion)
-                print("n cards",n_cards)
-                print("played cards",played_cards)
-                print("current suit",self.current_suit)                    
-                """    
                     
                 played_cards = torch.flatten(played_cards)                
-                
-
                 
                 player.cards_tensor = torch.zeros(60)
                 for card in player.cards_obj:
                     if card.legal:
                         player.cards_tensor[deck.deck.index(card)] = 1
-
-                #print("player cards tensor",player.cards_tensor.shape)
 
 
                 player_turn_obs = torch.cat((norm_bids.to(device=self.device),
@@ -178,11 +161,7 @@ class Game:
                 if isinstance(player,AdversaryPlayer):
                     #action is input not output!!!
                     net_out = player.play(player_obs.to(device=self.device))
-                    print("net_out",net_out)
-                    print("cards_tensor",player.cards_tensor)
-
                     card_activation = player.cards_tensor.to(device=self.device)*net_out.to(device=self.device)
-                    print("card_activation",card_activation)
                     action_idx = torch.argmax(card_activation.to(device=self.device))
                         
                     played_card = deck.deck[action_idx]

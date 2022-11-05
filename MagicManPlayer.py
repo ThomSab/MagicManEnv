@@ -29,9 +29,6 @@ class AdversaryPlayer:
        
     def play (self,obs):
         action_distribution = self.play_network(obs)
-
-        #sort out those that the player cant play
-
         return action_distribution
     
     def bid (self,obs):
