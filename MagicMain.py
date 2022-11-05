@@ -348,6 +348,7 @@ if __name__ == "__main__":
     env.current_round = 2
     obs,r,done,info = env.reset()
     
+    print(demo_train_player.current_bid)
     while not done:
         player_action = deck.deck.index(env.train_player.cards_obj[0])
         obs,r,done,info = env.turn_step(player_action)

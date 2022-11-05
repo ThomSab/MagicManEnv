@@ -33,15 +33,9 @@ class AdversaryPlayer:
     
     def bid (self,obs):
         activation = self.bid_network(obs)
+        self.bid_activation = activation[0]
         
-        self.current_activation = activation[0]
-            #multiply by the number of card in hand
-            #then divide by the amount of players 
-            #to have a better starting point for the bots
-        self.current_bid = torch.round(self.current_activation*torch.sum(self.cards_tensor))
-        #might be an illegal move but ill ignore that for now
-        
-        return self.current_bid
+        return self.bid_activation
 
     def clean_hand(self):
         self.cards = []  

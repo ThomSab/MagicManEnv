@@ -45,4 +45,5 @@ class BidNet(nn.Module):
         #x = self.features(x)
         #x = x.reshape(x.size(0), -1)
         x = self.fc(x)
+        print(x)
         return x
